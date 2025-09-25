@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
@@ -13,14 +13,14 @@ class User(UserBase):
     id: int
     is_active: bool
     
-    class Config:
+    class Config:  # Gardons l'ancienne syntaxe
         from_attributes = True
 
 # Schémas pour les tâches
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
-    status: str = "todo"  # todo, in_progress, done
+    status: str = "todo"
 
 class TaskCreate(TaskBase):
     pass
@@ -36,7 +36,7 @@ class Task(TaskBase):
     owner_id: int
     owner: User
     
-    class Config:
+    class Config:  # Gardons l'ancienne syntaxe
         from_attributes = True
 
 # Schéma pour l'authentification
