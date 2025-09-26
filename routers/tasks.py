@@ -81,6 +81,21 @@ def read_tasks(
     
     return query.offset(skip).limit(limit).all()
 
+@router.get("/stats", response_model=dict)
+def get_task_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Get task statistics for the current user."""
+    stats = {
+        "total": db.query(Task).filter(Task.owner_id == current_user.id).count(),
+        "todo": db.query(Task).filter(Task.owner_id == current_user.id, Task.status == "todo").count(),
+        "in_progress": db.query(Task).filter(Task.owner_id == current_user.id, Task.status == "in_progress").count(),
+        "done": db.query(Task).filter(Task.owner_id == current_user.id, Task.status == "done").count(),
+    }
+    stats["completion_rate"] = round((stats["done"] / stats["total"]) * 100, 1) if stats["total"] > 0 else 0
+    return stats
+
 @router.get("/{task_id}", response_model=TaskSchema)
 def read_task(
     task_id: int, 
@@ -125,17 +140,4 @@ def delete_task(
     db.commit()
     return {"message": "Task deleted successfully"}
 
-@router.get("/stats", response_model=dict)
-def get_task_stats(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-):
-    """Get task statistics for the current user."""
-    stats = {
-        "total": db.query(Task).filter(Task.owner_id == current_user.id).count(),
-        "todo": db.query(Task).filter(Task.owner_id == current_user.id, Task.status == "todo").count(),
-        "in_progress": db.query(Task).filter(Task.owner_id == current_user.id, Task.status == "in_progress").count(),
-        "done": db.query(Task).filter(Task.owner_id == current_user.id, Task.status == "done").count(),
-    }
-    stats["completion_rate"] = round((stats["done"] / stats["total"]) * 100, 1) if stats["total"] > 0 else 0
-    return stats
+
